@@ -58,6 +58,7 @@ export function Hero() {
   const tyreRef = useRef<HTMLDivElement>(null);
   const carRef = useRef<HTMLDivElement>(null);
   const bobRef = useRef<HTMLDivElement>(null);
+  const windRef = useRef<HTMLDivElement>(null);
   const linesRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -91,7 +92,12 @@ export function Hero() {
         { opacity: 1, y: 0, duration: 0.8, ease: gsapEase.out, delay: 0.7, stagger: stagger.sm },
       );
 
-      if (reduced) return;
+      const streaks = windRef.current?.querySelectorAll<HTMLElement>('.wind-streak');
+      if (reduced) {
+        // reduced motion: angin jadi garis statis samar, bukan dihapus tanpa pengganti
+        if (streaks?.length) gsap.set(streaks, { opacity: 0.3 });
+        return;
+      }
 
       /* --- rotasi ban terus-menerus --- */
       gsap.to(tyreRef.current, { rotation: 360, duration: 26, ease: 'none', repeat: -1, transformOrigin: '50% 50%' });
@@ -102,6 +108,15 @@ export function Hero() {
         { y: 0, rotation: 0.5 },
         { y: -6, rotation: -0.7, duration: 0.55, yoyo: true, repeat: -1, ease: 'sine.inOut', transformOrigin: '50% 90%' },
       );
+
+      /* --- streak angin mengalir dari depan ke belakang bodi --- */
+      streaks?.forEach((s, i) => {
+        const d = 1.15 + (i % 4) * 0.22;
+        const tl = gsap.timeline({ repeat: -1, delay: i * 0.21 });
+        tl.fromTo(s, { x: -130 }, { x: 130, duration: d, ease: 'none' }, 0)
+          .fromTo(s, { opacity: 0 }, { opacity: 0.85, duration: 0.35, ease: 'none' }, 0)
+          .to(s, { opacity: 0, duration: 0.45, ease: 'none' }, d - 0.45);
+      });
 
       /* --- parallax scroll --- */
       gsap.to(tyreRef.current, {
@@ -201,9 +216,26 @@ export function Hero() {
 
       {/* mobil bawah — sisi kanan, bebas dari baris statistik, di atas bar disclaimer */}
       <div className="pointer-events-none absolute bottom-2 right-4 opacity-90 sm:right-8 lg:right-16" aria-hidden="true">
-        <div ref={carRef} className="w-[320px] will-change-transform sm:w-[420px] lg:w-[520px]">
+        <div ref={carRef} className="relative w-[320px] will-change-transform sm:w-[420px] lg:w-[520px]">
           <div ref={bobRef} className="will-change-transform">
             <img src={carImg} alt="" className="h-auto w-full select-none" draggable={false} />
+          </div>
+          {/* streak angin yang mengenai bodi mobil */}
+          <div ref={windRef} className="pointer-events-none absolute -inset-x-8 inset-y-0" aria-hidden="true">
+            {[
+              { top: '20%', left: '2%', w: 'w-16' },
+              { top: '36%', left: '-8%', w: 'w-24' },
+              { top: '52%', left: '8%', w: 'w-20' },
+              { top: '68%', left: '-4%', w: 'w-14' },
+              { top: '28%', left: '46%', w: 'w-16' },
+              { top: '60%', left: '52%', w: 'w-20' },
+            ].map((p, i) => (
+              <span
+                key={i}
+                className={`wind-streak absolute h-px rounded-full bg-gradient-to-r from-transparent via-white/45 to-transparent opacity-0 ${p.w}`}
+                style={{ top: p.top, left: p.left }}
+              />
+            ))}
           </div>
         </div>
       </div>
