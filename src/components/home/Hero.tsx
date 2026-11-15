@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '../ui/Button';
 import { gsap, gsapEase, prefersReducedMotion, stagger } from '../../motion';
+import carImg from '../../assets/f1-car.png';
 
 /** Ilustrasi ban besar (SVG buatan sendiri) */
 function BigTyre() {
@@ -51,32 +52,12 @@ function BigTyre() {
   );
 }
 
-/** Siluet mobil abstrak (SVG buatan sendiri, bukan aset resmi) */
-function CarSilhouette() {
-  return (
-    <svg viewBox="0 0 520 150" className="h-full w-full" aria-hidden="true">
-      <path
-        d="M18 118 L58 112 L110 108 L150 96 L205 70 L262 56 L330 54 L392 66 L448 84 L492 98 L505 108 L500 122 L462 124 L448 112
-           A34 34 0 0 0 384 112 L380 122 L172 124 L160 112 A34 34 0 0 0 96 112 L92 122 L30 124 Z"
-        fill="#15151d"
-        stroke="#2e2e3a"
-        strokeWidth="2.5"
-      />
-      <path d="M232 66 L262 58 L318 57 L336 66 L300 74 L252 74 Z" fill="#0e0e14" stroke="#33333f" strokeWidth="1.5" />
-      <circle cx="128" cy="112" r="30" fill="#0c0c10" stroke="#2a2a33" strokeWidth="3" />
-      <circle cx="128" cy="112" r="12" fill="none" stroke="var(--accent)" strokeWidth="4" />
-      <circle cx="416" cy="112" r="30" fill="#0c0c10" stroke="#2a2a33" strokeWidth="3" />
-      <circle cx="416" cy="112" r="12" fill="none" stroke="var(--accent)" strokeWidth="4" />
-      <path d="M470 70 L512 62 L512 78 L478 84 Z" fill="var(--accent)" opacity="0.85" />
-    </svg>
-  );
-}
-
 export function Hero() {
   const rootRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const tyreRef = useRef<HTMLDivElement>(null);
   const carRef = useRef<HTMLDivElement>(null);
+  const bobRef = useRef<HTMLDivElement>(null);
   const linesRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -115,15 +96,16 @@ export function Hero() {
       /* --- rotasi ban terus-menerus --- */
       gsap.to(tyreRef.current, { rotation: 360, duration: 26, ease: 'none', repeat: -1, transformOrigin: '50% 50%' });
 
+      /* --- bob mobil: suspensi tertekan downforce, seolah siap akselerasi --- */
+      gsap.fromTo(
+        bobRef.current,
+        { y: 0, rotation: 0.5 },
+        { y: -6, rotation: -0.7, duration: 0.55, yoyo: true, repeat: -1, ease: 'sine.inOut', transformOrigin: '50% 90%' },
+      );
+
       /* --- parallax scroll --- */
       gsap.to(tyreRef.current, {
         yPercent: -18,
-        ease: 'none',
-        scrollTrigger: { trigger: root, start: 'top top', end: 'bottom top', scrub: 0.6 },
-      });
-      gsap.to(carRef.current, {
-        yPercent: 30,
-        xPercent: -6,
         ease: 'none',
         scrollTrigger: { trigger: root, start: 'top top', end: 'bottom top', scrub: 0.6 },
       });
@@ -209,20 +191,21 @@ export function Hero() {
 
       {/* ban besar kanan */}
       <div
-        ref={tyreRef}
-        className="pointer-events-none absolute -right-24 top-1/2 hidden w-[520px] -translate-y-1/2 opacity-80 will-change-transform md:block lg:w-[640px]"
+        className="pointer-events-none absolute -right-24 inset-y-0 hidden w-[520px] items-center opacity-80 md:flex lg:w-[640px]"
         aria-hidden="true"
       >
-        <BigTyre />
+        <div ref={tyreRef} className="w-full will-change-transform">
+          <BigTyre />
+        </div>
       </div>
 
-      {/* mobil bawah */}
-      <div
-        ref={carRef}
-        className="pointer-events-none absolute -bottom-6 left-1/2 w-[420px] -translate-x-1/2 opacity-90 will-change-transform sm:w-[560px]"
-        aria-hidden="true"
-      >
-        <CarSilhouette />
+      {/* mobil bawah — sisi kanan, bebas dari baris statistik, di atas bar disclaimer */}
+      <div className="pointer-events-none absolute bottom-2 right-4 opacity-90 sm:right-8 lg:right-16" aria-hidden="true">
+        <div ref={carRef} className="w-[320px] will-change-transform sm:w-[420px] lg:w-[520px]">
+          <div ref={bobRef} className="will-change-transform">
+            <img src={carImg} alt="" className="h-auto w-full select-none" draggable={false} />
+          </div>
+        </div>
       </div>
 
       <div className="hero-content relative z-10 mx-auto w-full max-w-7xl px-4 pb-24 pt-16 sm:px-6">
